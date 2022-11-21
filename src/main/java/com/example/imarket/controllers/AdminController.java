@@ -22,7 +22,7 @@ public class AdminController {
 
     @GetMapping("/admin")
     public String admin(Model model) {
-        model.addAttribute("users", userService.userList());
+        model.addAttribute("users", userService.users());
         return "admin";
     }
 
@@ -40,7 +40,8 @@ public class AdminController {
     }
 
     @PostMapping("/admin/user/edit")
-    public String edit(@RequestParam("userId") User user, @RequestParam Map<String, String> form) {
+    public String edit(@RequestParam("userId") User user,
+                       @RequestParam Map<String, String> form) {
         userService.changeUserRoles(user, form);
         return "redirect:/admin";
     }

@@ -21,13 +21,18 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
 
-    public List<Product> listProducts(String title) {
+    public List<Product> products(String title) {
         if (title != null) return productRepository.findByTitleContainingIgnoreCase(title);
         return productRepository.findAll();
     }
 
-    public void saveProduct(Principal principal, Product product, MultipartFile file1, MultipartFile file2, MultipartFile file3) throws IOException {
+    public void saveProduct(Principal principal,
+                            Product product,
+                            MultipartFile file1,
+                            MultipartFile file2,
+                            MultipartFile file3) throws IOException {
         product.setUser(getUserByPrincipal(principal));
+
         Image image1, image2, image3;
         if (file1.getSize() != 0) {
             image1 = toImageEntity(file1);
@@ -49,30 +54,17 @@ public class ProductService {
         productRepository.save(product);
     }
 
-    public User getUserByPrincipal(Principal principal) {
-        if (principal == null) return new User();
-        return userRepository.findByEmail(principal.getName());
-    }
-
-    private Image toImageEntity(MultipartFile file) throws IOException {
-        Image image = new Image();
-        image.setName(file.getName());
-        image.setOriginalFileName(file.getOriginalFilename());
-        image.setSize(file.getSize());
-        image.setContentType(file.getContentType());
-        image.setBytes(file.getBytes());
-        return image;
-    }
-
     public void deleteProduct(User user, Long id) {
         if (user != null) {
             if (getProductById(id).getUser().getId().equals(user.getId())) {
                 productRepository.deleteById(id);
                 log.info("Product with id = {} was deleted", id);
+            } else {
+                log.info("User {} haven`t product with id = {}", user.getEmail(), id);
             }
-            else {log.info("User {} haven`t product with id = {}", user.getEmail(), id);}
+        } else {
+            log.info("Product with id = {} not found", id);
         }
-        else {log.info("Product with id = {} not found", id);}
     }
 
     public Product getProductById(Long id) {
@@ -82,7 +74,6 @@ public class ProductService {
     public List<Product> userProducts(User user) {
         return productRepository.findAllByUserId(user.getId());
     }
-
 
 
     public void updateProduct(User user, Long id, MultipartFile file1,
@@ -104,17 +95,15 @@ public class ProductService {
             }
             if (file2.getSize() != 0) {
                 image2 = toImageEntity(file2);
-                if(product.getImages().size() >= 2) {
+                if (product.getImages().size() >= 2) {
                     product.setProductImage(1, image2);
-                }
-                else product.addImageToProduct(image2);
+                } else product.addImageToProduct(image2);
             }
             if (file3.getSize() != 0) {
                 image3 = toImageEntity(file3);
-                if(product.getImages().size() == 3) {
+                if (product.getImages().size() == 3) {
                     product.setProductImage(2, image3);
-                }
-                else product.addImageToProduct(image3);
+                } else product.addImageToProduct(image3);
             }
 
             log.info("Updating Product... Title: {}; Author: {}", product.getTitle(), product.getUser().getName());
@@ -122,5 +111,20 @@ public class ProductService {
             productFromDB.setPreviewImageId(productFromDB.getImages().get(0).getId());
             productRepository.save(product);
         }
+    }
+
+    public User getUserByPrincipal(Principal principal) {
+        if (principal == null) return new User();
+        return userRepository.findByEmail(principal.getName());
+    }
+
+    private Image toImageEntity(MultipartFile file) throws IOException {
+        Image image = new Image();
+        image.setName(file.getName());
+        image.setOriginalFileName(file.getOriginalFilename());
+        image.setSize(file.getSize());
+        image.setContentType(file.getContentType());
+        image.setBytes(file.getBytes());
+        return image;
     }
 }

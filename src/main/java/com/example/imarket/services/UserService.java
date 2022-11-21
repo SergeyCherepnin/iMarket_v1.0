@@ -1,6 +1,5 @@
 package com.example.imarket.services;
 
-import com.example.imarket.models.Product;
 import com.example.imarket.models.User;
 import com.example.imarket.models.enums.Role;
 import com.example.imarket.repositories.UserRepository;
@@ -35,7 +34,7 @@ public class UserService {
         return true;
     }
 
-    public List<User> userList() {
+    public List<User> users() {
        return userRepository.findAll();
     }
 
@@ -57,7 +56,9 @@ public class UserService {
         Set<String> roles = Arrays.stream(Role.values())
                 .map(Role::name)
                 .collect(Collectors.toSet());
+
         user.getRoles().clear();
+
         for (String key : form.keySet()) {
             if (roles.contains(key)) {
                 user.getRoles().add(Role.valueOf(key));
